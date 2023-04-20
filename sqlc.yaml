@@ -1,0 +1,16 @@
+# Site: sqlc.edv
+# Biblioteca para compilar código SQL para uma forma type-safe code
+# Cria SQL e recebe código tipado
+# Para gerar: "sqlc generate"
+version: "2"
+sql:
+  - schema: "sql/migrations" # Schemas location
+    queries: "sql/queries" # Queries location
+    engine: "mysql"
+    gen: # Geração do código será em Go
+      go:
+        package: "db" # Pacote será "internal/infra/db"
+        out: "internal/infra/db"
+        overrides:
+          - db_type: "decimal" # DB Type decial será GO Type float64
+            go_type: "float64"
