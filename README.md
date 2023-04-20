@@ -20,5 +20,5 @@ SQLC
 
 OpenAI
 
-- github.com/sashabaranov/go-openai
+- https://github.com/sashabaranov/go-openai
 - OpenAI API
