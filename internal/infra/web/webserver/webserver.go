@@ -8,7 +8,7 @@ import (
 )
 
 type WebServer struct {
-	Router        chi.Router
+	Router        chi.Router // go-chi
 	Handlers      map[string]http.HandlerFunc
 	WebServerPort string
 }

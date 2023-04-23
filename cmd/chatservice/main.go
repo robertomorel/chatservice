@@ -16,21 +16,27 @@ import (
 )
 
 func main() {
+	// Preparando variáveis de configuração
 	configs, err := configs.LoadConfig(".")
 	if err != nil {
 		panic(err)
 	}
 
+	// Abrindo configuração
 	conn, err := sql.Open(configs.DBDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&multiStatements=true",
 		configs.DBUser, configs.DBPassword, configs.DBHost, configs.DBPort, configs.DBName))
 	if err != nil {
 		panic(err)
 	}
+	// Depois que roda todo o main, o "defer" fecha a conexão
 	defer conn.Close()
 
+	// Instanciando o repositório
 	repo := repository.NewChatRepositoryMySQL(conn)
+	// Instanciando o client do OpenAI
 	client := openai.NewClient(configs.OpenAIApiKey)
 
+	// Criando as configurações do OpenAI
 	chatConfig := chatcompletion.ChatCompletionConfigInputDTO{
 		Model:                configs.Model,
 		ModelMaxTokens:       configs.ModelMaxTokens,
@@ -42,6 +48,7 @@ func main() {
 		InitialSystemMessage: configs.InitialChatMessage,
 	}
 
+	// Criando as configurações do OpenAI para stream
 	chatConfigStream := chatcompletionstream.ChatCompletionConfigInputDTO{
 		Model:                configs.Model,
 		ModelMaxTokens:       configs.ModelMaxTokens,
@@ -55,10 +62,12 @@ func main() {
 
 	usecase := chatcompletion.NewChatCompletionUseCase(repo, client)
 
+	// Criando stream channel
 	streamChannel := make(chan chatcompletionstream.ChatCompletionOutputDTO)
 	usecaseStream := chatcompletionstream.NewChatCompletionUseCase(repo, client, streamChannel)
 
 	fmt.Println("Starting gRPC server on port " + configs.GRPCServerPort)
+
 	grpcServer := server.NewGRPCServer(
 		*usecaseStream,
 		chatConfigStream,
@@ -68,8 +77,10 @@ func main() {
 	)
 	go grpcServer.Start()
 
+	// Criando o webserver
 	webserver := webserver.NewWebServer(":" + configs.WebServerPort)
 	webserverChatHandler := web.NewWebChatGPTHandler(*usecase, chatConfig, configs.AuthToken)
+	// Adicionando o primeiro handler, com o path /chat
 	webserver.AddHandler("/chat", webserverChatHandler.Handle)
 
 	fmt.Println("Server running on port " + configs.WebServerPort)

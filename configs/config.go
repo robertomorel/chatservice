@@ -23,6 +23,8 @@ type conf struct {
 	AuthToken          string   `mapstructure:"AUTH_TOKEN"`
 }
 
+// Para ler como variável de ambiente
+// "Viper" serve para ler e expor variáveis de configuração
 func LoadConfig(path string) (*conf, error) {
 	var cfg *conf
 	viper.SetConfigName("app_config")

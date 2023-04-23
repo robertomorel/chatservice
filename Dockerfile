@@ -18,4 +18,5 @@ COPY . .
 RUN cd /go/pkg/mod/github.com/j178/tiktoken-go@v0.2.1/tiktoken-cffi && \
     cargo build --release
 
+# Para manter o container rodando
 CMD [ "tail", "-f", "/dev/null" ]

@@ -15,6 +15,7 @@ type ChatRepositoryMySQL struct {
 	Queries *db.Queries // Para ter acesso ao pacote de queries do SQLC
 }
 
+// Criando um novo repositório para o Chat
 func NewChatRepositoryMySQL(dbt *sql.DB) *ChatRepositoryMySQL {
 	return &ChatRepositoryMySQL{
 		DB:      dbt,
@@ -23,8 +24,9 @@ func NewChatRepositoryMySQL(dbt *sql.DB) *ChatRepositoryMySQL {
 }
 
 func (r *ChatRepositoryMySQL) CreateChat(ctx context.Context, chat *entity.Chat) error {
+	// Cria o chat
 	err := r.Queries.CreateChat(
-		ctx,
+		ctx, // Contexto
 		db.CreateChatParams{
 			ID:               chat.ID,
 			UserID:           chat.UserID,
@@ -44,12 +46,14 @@ func (r *ChatRepositoryMySQL) CreateChat(ctx context.Context, chat *entity.Chat)
 			UpdatedAt:        time.Now(),
 		},
 	)
+	// Retorna o erro se existir
 	if err != nil {
 		return err
 	}
 
+	// Add uma mensagem
 	err = r.Queries.AddMessage(
-		ctx,
+		ctx, // Contexto
 		db.AddMessageParams{
 			ID:        chat.InitialSystemMessage.ID,
 			ChatID:    chat.ID,
@@ -59,6 +63,7 @@ func (r *ChatRepositoryMySQL) CreateChat(ctx context.Context, chat *entity.Chat)
 			CreatedAt: chat.InitialSystemMessage.CreatedAt,
 		},
 	)
+	// Retorna o erro se existir
 	if err != nil {
 		return err
 	}
@@ -67,11 +72,16 @@ func (r *ChatRepositoryMySQL) CreateChat(ctx context.Context, chat *entity.Chat)
 }
 
 func (r *ChatRepositoryMySQL) FindChatByID(ctx context.Context, chatID string) (*entity.Chat, error) {
+	// Criando entidade vazia do chat
+	// Será responsável por receber os dados do DB e retornar formatado
 	chat := &entity.Chat{}
+	// Buscando um chat pelo DB
 	res, err := r.Queries.FindChatByID(ctx, chatID)
 	if err != nil {
 		return nil, errors.New("chat not found")
 	}
+
+	// Pega os parâmetros do chat e alinhando com os parâmetros de resposta
 	chat.ID = res.ID
 	chat.UserID = res.UserID
 	chat.Status = res.Status
@@ -90,11 +100,13 @@ func (r *ChatRepositoryMySQL) FindChatByID(ctx context.Context, chatID string) (
 		FrequencyPenalty: float32(res.FrequencyPenalty),
 	}
 
+	// Resgatando as mensagens do chat
 	messages, err := r.Queries.FindMessagesByChatID(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
 
+	// Adicionando todas as mensagens à entidade "chat"
 	for _, message := range messages {
 		chat.Messages = append(chat.Messages, &entity.Message{
 			ID:        message.ID,
@@ -106,10 +118,13 @@ func (r *ChatRepositoryMySQL) FindChatByID(ctx context.Context, chatID string) (
 		})
 	}
 
+	// Buscando mensagens deletadas
 	erasedMessages, err := r.Queries.FindErasedMessagesByChatID(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
+
+	// Adicionando todas as mensagens apagadas à entidade "chat"
 	for _, message := range erasedMessages {
 		chat.ErasedMessages = append(chat.ErasedMessages, &entity.Message{
 			ID:        message.ID,
