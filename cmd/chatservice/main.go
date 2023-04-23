@@ -67,7 +67,7 @@ func main() {
 	usecaseStream := chatcompletionstream.NewChatCompletionUseCase(repo, client, streamChannel)
 
 	fmt.Println("Starting gRPC server on port " + configs.GRPCServerPort)
-
+	// Instanciando o servidor gRPC
 	grpcServer := server.NewGRPCServer(
 		*usecaseStream,
 		chatConfigStream,
@@ -75,6 +75,7 @@ func main() {
 		configs.AuthToken,
 		streamChannel,
 	)
+	// Criando uma nova thread com o servidor do grpc
 	go grpcServer.Start()
 
 	// Criando o webserver

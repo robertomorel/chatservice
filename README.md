@@ -45,7 +45,7 @@ Documentation: https://grpc.io/docs/what-is-grpc/
 2. Run the migrations: `make migrate`
 3. Secret Key:
 
-- Generate the Secret Key (here)[https://platform.openai.com/account/api-keys]
+- Generate the Secret Key [here](https://platform.openai.com/account/api-keys)
 
 4. Test:
 

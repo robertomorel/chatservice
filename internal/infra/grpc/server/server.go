@@ -54,10 +54,15 @@ func (g *GRPCServer) AuthInterceptor(srv interface{}, ss grpc.ServerStream, info
 }
 
 func (g *GRPCServer) Start() error {
+	// Criando ops de dados adicionais no server
 	opts := []grpc.ServerOption{
+		// Funciona como um middleware, que valida a requisição.
+		// Se vier algo estranho, bloqueia a requisição
 		grpc.StreamInterceptor(g.AuthInterceptor),
 	}
+	// Criando um novo server gRPC com a biblioteca nativa do Golang
 	grpcServer := grpc.NewServer(opts...)
+	// Resgistrando o serviço no servidor grpc
 	pb.RegisterChatServiceServer(grpcServer, &g.ChatService)
 	reflection.Register(grpcServer)
 

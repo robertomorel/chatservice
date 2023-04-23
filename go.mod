@@ -18,7 +18,6 @@ require (
 )
 
 require (
-	github.com/robertomorel/chatservice v0.0.0-20230418201039-2ab20c9d96d5
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

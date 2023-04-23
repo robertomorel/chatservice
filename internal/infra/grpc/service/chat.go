@@ -12,6 +12,7 @@ type ChatService struct {
 	StreamChannel               chan chatcompletionstream.ChatCompletionOutputDTO
 }
 
+// Constructor
 func NewChatService(chatCompletionStreamUseCase chatcompletionstream.ChatCompletionUseCase, chatConfigStream chatcompletionstream.ChatCompletionConfigInputDTO, streamChannel chan chatcompletionstream.ChatCompletionOutputDTO) *ChatService {
 	return &ChatService{
 		ChatCompletionStreamUseCase: chatCompletionStreamUseCase,
@@ -31,6 +32,8 @@ func (c *ChatService) ChatStream(req *pb.ChatRequest, stream pb.ChatService_Chat
 		MaxTokens:            c.ChatConfigStream.MaxTokens,
 		InitialSystemMessage: c.ChatConfigStream.InitialSystemMessage,
 	}
+
+	// Input do casodo uso
 	input := chatcompletionstream.ChatCompletionInputDTO{
 		UserMessage: req.GetUserMessage(),
 		UserID:      req.GetUserId(),
@@ -38,7 +41,11 @@ func (c *ChatService) ChatStream(req *pb.ChatRequest, stream pb.ChatService_Chat
 		Config:      chatConfig,
 	}
 
+	// Pegando o contexto
 	ctx := stream.Context()
+
+	// Criando uma função para rodar em outra thread
+	// Conforme eu recebo os dados via canal de streaming, ele sempre publica o streaming da mensagem
 	go func() {
 		for msg := range c.StreamChannel {
 			stream.Send(&pb.ChatResponse{
@@ -49,6 +56,7 @@ func (c *ChatService) ChatStream(req *pb.ChatRequest, stream pb.ChatService_Chat
 		}
 	}()
 
+	// Pegando os dados do screaming pelo ChatCompletionStreamUseCase
 	_, err := c.ChatCompletionStreamUseCase.Execute(ctx, input)
 	if err != nil {
 		return err
